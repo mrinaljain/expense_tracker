@@ -25,13 +25,51 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
       context: context,
-      builder: (BuildContext ctx) => const NewExpense(),
+      isScrollControlled: true,
+      builder: (BuildContext ctx) => NewExpense(
+        onAddExpense: _addExpense,
+      ),
     );
+  }
+
+  void _addExpense(Expense expense) {
+    setState(() {
+      _registeredExpenses.add(expense);
+    });
+  }
+
+  void _removeExpense(Expense expense) {
+    final expenseIndex = _registeredExpenses.indexOf(expense);
+    setState(() {
+      _registeredExpenses.remove(expense);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: const Text('Expense Deleted'),
+      duration: const Duration(seconds: 5),
+      action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              /// insert and add are same , just that insert takes specific index
+              _registeredExpenses.insert(expenseIndex, expense);
+            });
+          }),
+    ));
   }
 
 //5. Add build method inside the Stateclass
   @override
   Widget build(BuildContext context) {
+    Widget maincontent = const Center(
+      child: Text('No expenses found, start adding some..'),
+    );
+    if (_registeredExpenses.isNotEmpty) {
+      maincontent = ExpensesList(
+        expenses: _registeredExpenses,
+        onRemoveExpense: _removeExpense,
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Flutter Expense Tracker'),
@@ -46,9 +84,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         children: [
           const Text('The Chart'),
           Expanded(
-            child: ExpensesList(
-              expenses: _registeredExpenses,
-            ),
+            child: maincontent,
           )
         ],
       ),

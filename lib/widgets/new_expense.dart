@@ -1,10 +1,16 @@
 import 'package:expense_tracker/models/expense.dart';
 // import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class NewExpense extends StatefulWidget {
-  const NewExpense({super.key});
-
+  const NewExpense({
+    super.key,
+    required this.onAddExpense,
+   
+  });
+  final Function(Expense expense) onAddExpense;
+ 
   @override
   State<NewExpense> createState() => _NewExpenseState();
 }
@@ -28,20 +34,50 @@ class _NewExpenseState extends State<NewExpense> {
       _selectedDate = pickedDate;
     });
 
+    // if (kDebugMode) {
     print(pickedDate);
+    // }
   }
 
   void _submitExpenseData() {
-    final enteredAmount = _amountController.text;
-    if (_titleController.text.trim().isEmpty) {
+    ///double.tryparse takes a string as input and then returns double if it is able to else returns null
+    final enteredAmount = double.tryParse(_amountController.text);
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
+    if (_titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        _selectedDate == null) {
       // show error message
+      showDialog(
+        context: context,
+        builder: (BuildContext ctx) => AlertDialog(
+          title: const Text('Invalid Input'),
+          content: const Text(
+              'Please Make sure a valid Title, Date , amount and category was entered'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Okay'),
+            )
+          ],
+        ),
+      );
+      return;
     }
+
+    final newExpense = Expense(
+      title: _titleController.text,
+      amount: enteredAmount,
+      date: _selectedDate!,
+      category: _selectedCategory,
+    );
+    widget.onAddExpense(newExpense);
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
       child: Column(
         children: [
           TextField(
