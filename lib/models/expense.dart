@@ -39,3 +39,23 @@ class Expense {
     return formatter.format(date);
   }
 }
+
+class ExpenseBucket {
+  final Category category;
+  final List<Expense> expenses;
+
+  ExpenseBucket(this.category, this.expenses);
+  /// Utility constructor function best example to learn
+  ExpenseBucket.forCategory(List<Expense> allExpenses, this.category)
+      : expenses = allExpenses
+            .where((expense) => expense.category == category)
+            .toList();
+  double get totalExpenses {
+    double sum = 0;
+    for (final expense in expenses) {
+      sum = sum + expense.amount;
+      // sum += expense.amount
+    }
+    return sum;
+  }
+}
